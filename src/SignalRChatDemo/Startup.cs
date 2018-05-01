@@ -11,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalRChatDemo.Data;
 using SignalRChatDemo.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SignalRChatDemo
 {
@@ -26,6 +29,8 @@ namespace SignalRChatDemo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var key = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes(Constants.DefaultKey));
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -46,6 +51,48 @@ namespace SignalRChatDemo
 
             services.AddSignalR();
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters =
+                    new TokenValidationParameters
+                    {
+                        LifetimeValidator = (before, expires, token, parameters) => expires > DateTime.UtcNow,
+                        ValidateAudience = false,
+                        ValidateIssuer = false,
+                        ValidateActor = false,
+                        ValidateLifetime = true,
+                        IssuerSigningKey = key,
+                        NameClaimType = ClaimTypes.NameIdentifier
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            if (!string.IsNullOrEmpty(accessToken)
+                            // &&
+                            //     (context.HttpContext.WebSockets.IsWebSocketRequest || context.Request.Headers["Accept"] == "text/event-stream")
+                                )
+                            {
+                                context.Token = context.Request.Query["access_token"];
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(JwtBearerDefaults.AuthenticationScheme, policy =>
+                {
+                    policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+                    policy.RequireClaim(ClaimTypes.NameIdentifier);
+                });
+            });
+            
             services.AddSingleton<PresenceTracker>();
         }
 

@@ -1,10 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace SignalRChatDemo
 {
+    [Authorize()]
     public class ChatHub : Hub
     {
         private readonly PresenceTracker presence;
@@ -14,7 +16,6 @@ namespace SignalRChatDemo
             this.presence = presence;
         }
 
-        [Authorize]
         public Task SendMessage(string message) 
         {
             return Clients.All.SendCoreAsync("newMessage", new object[] { Context.User.Identity.Name, message });

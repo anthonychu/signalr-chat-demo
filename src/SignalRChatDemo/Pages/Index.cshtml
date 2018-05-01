@@ -6,7 +6,7 @@
 
 <script src="https://unpkg.com/@@aspnet/signalr@@1.0.0-preview2-final/dist/browser/signalr.js"></script>
 <script>
-    var connection = new signalR.HubConnection("/chat")
+    var connection = new signalR.HubConnection("/chat?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6InBvb3AiLCJleHAiOjE1MjUyNDEwNjgsImlzcyI6IlNpZ25hbFJUZXN0U2VydmVyIiwiYXVkIjoiU2lnbmFsUlRlc3RzIn0.wetcVz2oRnnOktP82C-BmT9T5tlY993Plvld5GYnk-")
     connection.on('newMessage', (sender, message) => console.log(`${sender}: ${message}`))
     connection.on('userJoined', username => console.log(`${username} joined`))
     connection.on('userLeft', username => console.log(`${username} left`))
