@@ -51,7 +51,7 @@ namespace SignalRChatDemo
 
             services.AddSignalR();
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication()
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters =
@@ -108,15 +108,15 @@ namespace SignalRChatDemo
             {
                 app.UseExceptionHandler("/Error");
             }
-            app.UseStaticFiles();
-
             app.UseAuthentication();
-
             app.UseSignalR(builder => 
             {
                 builder.MapHub<ChatHub>("/chat");
             });
+
+
             app.UseMvc();
+            app.UseStaticFiles();
         }
     }
 }
